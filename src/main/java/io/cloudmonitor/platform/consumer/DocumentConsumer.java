@@ -1,4 +1,4 @@
-package in.quiktrack.erp.consumer;
+package io.cloudmonitor.platform.consumer;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
-package in.quiktrack.erp.router;
+package io.cloudmonitor.platform.router;
 
-import in.quiktrack.erp.model.EventMessage;
+import io.cloudmonitor.platform.model.EventMessage;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
