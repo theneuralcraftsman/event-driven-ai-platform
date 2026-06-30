@@ -1,123 +1,161 @@
-# Event-Driven AI Data Processing Platform
+# Cloud Infrastructure Monitoring Platform
 
-A distributed, event-driven platform for asynchronous ingestion and AI-based processing of documents using Kafka and Spring Boot. The system is designed to simulate scalable AI infrastructure used in production-grade platforms.
+A distributed event-driven cloud infrastructure monitoring platform built with **Spring Boot**, **Apache Kafka**, and **Docker**. The platform asynchronously ingests telemetry metrics from distributed servers, routes events through Kafka topics, and processes them using independent storage and alert pipelines.
 
-## Overview
+This project demonstrates production-oriented backend concepts including asynchronous messaging, event-driven architecture, loose coupling, and scalable microservice communication.
 
-This platform enables ingestion of unstructured data through REST APIs, processes it asynchronously using Kafka, and exposes processed results through retrieval services. The architecture follows microservices and event-driven design principles for scalability and reliability.
-
-## Architecture
-
-```
-Client
-  ↓
-API Gateway (future)
-  ↓
-Ingestion Service (Kafka Producer)
-  ↓
-Kafka Topic
-  ↓
-Processing Service (Kafka Consumer)
-  ↓
-AI Processing (Embedding / NLP - planned)
-  ↓
-Database (planned)
-  ↓
-Retrieval Service (planned)
-```
+---
 
 ## Features
 
+- REST API for telemetry ingestion
 - Event-driven architecture using Apache Kafka
-- Stateless ingestion microservice
-- Asynchronous document processing
-- Kafka producer and consumer services
-- REST-based ingestion API
-- Scalable microservices design
-- Extensible AI processing pipeline (planned)
-- Docker-based local deployment (planned)
+- Asynchronous telemetry processing
+- Intelligent event routing
+- Independent storage and alert processing pipelines
+- Threshold-based alert generation
+- Production-style logging with SLF4J
+- Dockerized Kafka environment
+- Extensible microservice architecture
 
-## Tech Stack
+---
 
-- Java
+## Technology Stack
+
+- Java 17
 - Spring Boot
 - Spring Kafka
 - Apache Kafka
-- Docker (planned)
-- MySQL / MongoDB (planned)
-- REST APIs
+- Docker & Docker Compose
+- Maven
+- SLF4J Logging
 
-## Services
+---
 
-### Ingestion Service
-- Accepts documents via REST API
-- Publishes messages to Kafka topic
+## Event Flow
 
-### Processing Service
-- Consumes Kafka messages
-- Performs AI processing (planned)
-- Stores processed results (planned)
+1. Cloud servers publish telemetry metrics.
+2. The REST API accepts telemetry requests.
+3. `TelemetryProducer` publishes events to the `telemetry.raw` Kafka topic.
+4. `TelemetryRouter` consumes events from `telemetry.raw`.
+5. Every event is forwarded to `telemetry.storage`.
+6. Critical telemetry events (CPU/Memory threshold exceeded) are additionally published to `telemetry.alert`.
+7. `TelemetryStorageConsumer` processes all telemetry events.
+8. `AlertConsumer` forwards alert events to `AlertService` for alert generation.
 
-### Retrieval Service (Planned)
-- Query processed data
-- Provide search and retrieval APIs
+---
 
-## Getting Started
+## Current Project Structure
+
+```text
+src
+└── main
+    └── java
+        └── io.cloudmonitor.platform
+            ├── config
+            ├── consumer
+            ├── controller
+            ├── model
+            ├── producer
+            ├── router
+            ├── service
+            └── CloudMonitoringApplication.java
+```
+
+---
+
+## Running the Project
 
 ### Prerequisites
 
 - Java 17+
 - Maven
-- Docker (for Kafka)
+- Docker Desktop
 
-### Run Kafka
+### Start Kafka
 
+```bash
+docker compose up -d
 ```
-docker-compose up -d
-```
 
-### Run Application
+### Run Spring Boot
 
-```
+```bash
 mvn spring-boot:run
 ```
 
-### Test Ingestion
+or run `CloudMonitoringApplication` directly from your IDE.
+
+---
+
+## Sample API Request
+
+**POST**
 
 ```
-curl -X POST http://localhost:8080/ingest \
--H "Content-Type: text/plain" \
--d "Sample document for AI processing"
+http://localhost:8080/api/v1/telemetry
 ```
 
-You should see the consumer service processing the document.
+**Request Body**
 
-## Project Structure
+```json
+{
+  "eventId": "evt-1001",
+  "hostName": "server-1",
+  "region": "ap-south-1",
+  "instanceType": "t3.medium",
+  "cpuUsage": 95,
+  "memoryUsage": 71,
+  "diskUsage": 62,
+  "networkThroughput": 125,
+  "timestamp": "2026-06-30T09:00:00"
+}
+```
+
+---
+
+## Sample Processing Flow
 
 ```
-event-driven-ai-platform
-│
-├── ingestion-service
-├── processing-service
-├── retrieval-service (planned)
-├── docker-compose.yml
-└── README.md
+REST API
+      │
+      ▼
+TelemetryProducer
+      │
+      ▼
+telemetry.raw
+      │
+      ▼
+TelemetryRouter
+      │
+      ├────────► telemetry.storage
+      │                 │
+      │                 ▼
+      │       TelemetryStorageConsumer
+      │
+      └────────► telemetry.alert
+                        │
+                        ▼
+                 AlertConsumer
+                        │
+                        ▼
+                  AlertService
 ```
 
-## Future Improvements
+---
 
-- AI embedding generation
-- Vector database integration
-- Multiple Kafka consumers
-- Retry & dead-letter queue
-- API gateway
-- Observability (metrics + logging)
-- Kubernetes deployment
+## Why Event-Driven Architecture?
 
-## Use Case
+Instead of processing telemetry synchronously during an HTTP request, events are published to Kafka and processed asynchronously by independent services.
 
-This platform simulates AI data ingestion pipelines used in production systems, where large volumes of documents must be processed asynchronously and made searchable using AI techniques.
+### Benefits
 
-## Status
+- Loose coupling between services
+- High throughput
+- Improved scalability
+- Independent deployment of consumers
+- Fault-tolerant processing
+- Easy addition of new downstream services
 
-🚧 Work in Progress — Initial Kafka ingestion and processing services implemented.
+---
+
