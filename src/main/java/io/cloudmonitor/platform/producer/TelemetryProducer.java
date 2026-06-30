@@ -1,5 +1,6 @@
 package io.cloudmonitor.platform.producer;
 
+import io.cloudmonitor.platform.config.KafkaTopics;
 import io.cloudmonitor.platform.model.TelemetryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,18 +13,34 @@ public class TelemetryProducer {
     private static final Logger logger =
             LoggerFactory.getLogger(TelemetryProducer.class);
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, TelemetryEvent> kafkaTemplate;
 
-    public TelemetryProducer(KafkaTemplate<String, Object> kafkaTemplate) {
+    public TelemetryProducer(KafkaTemplate<String, TelemetryEvent> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
+
+    /**
+     * Publishes incoming telemetry events to the raw Kafka topic.
+     * This acts as the entry point into the event processing pipeline.
+     */
     public void publishTelemetry(TelemetryEvent event) {
 
         logger.info("Publishing telemetry event {} from host {}",
                 event.getEventId(),
                 event.getHostName());
 
-        kafkaTemplate.send("telemetry.raw", event);
+        System.out.println("PRODUCER HIT");
+
+        kafkaTemplate.send(KafkaTopics.RAW, event)
+                .whenComplete((result, ex) -> {
+
+                    if (ex == null) {
+                        System.out.println("MESSAGE SENT SUCCESSFULLY");
+                    } else {
+                        ex.printStackTrace();
+                    }
+
+                });
     }
 }
